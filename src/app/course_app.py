@@ -6,7 +6,6 @@ from src.auth.login_workflow import run_websocket_login
 from src.core.course_progress import run_discussion_comment_session
 from src.core.course_progress_async import run_async_session
 from src.core.course_progress_graph import SUPPORTED_LEAF_TYPES, run_graph_session
-from src.core.course_progress_multithread import run_video_session
 from src.core.course_selection import CourseSelection, select_courses
 from src.core.exercise_collector import run_collect_questions_session
 from src.core.exercise_solver import run_exercise_solver_session
@@ -51,44 +50,6 @@ def _run_for_selected_courses(
         log_info(f"{title}已全部处理完成。")
 
 
-def _run_multithread_session() -> None:
-    max_workers_input = input("请输入并发线程数 (1-5，默认3): ").strip()
-    try:
-        max_workers = max(1, min(5, int(max_workers_input)))
-    except ValueError:
-        max_workers = 3
-
-    fast_mode_input = input("是否使用快速模式？(y/n，默认 n，风险更高): ").strip().lower()
-    fast_mode = fast_mode_input in ("y", "yes")
-    if fast_mode:
-        log_warning("【警告】快速模式速度更快，但被检测风险更高。")
-
-    selected_courses = select_courses(fetcher=_fetch_courses, allow_multiple=True)
-    confirm = input(f"确认开始处理 {len(selected_courses)} 门课程？(y/n): ").strip().lower()
-    if confirm not in ("y", "yes"):
-        log_info("取消操作。")
-        return
-
-    for index, selection in enumerate(selected_courses, start=1):
-        course_name = selection[2].get("name")
-        if len(selected_courses) > 1:
-            log_info(SEPARATOR)
-            log_info(f"开始处理第 {index}/{len(selected_courses)} 门课程：{course_name}")
-
-        run_graph_session(
-            selected_course=selection,
-            target_types=SUPPORTED_LEAF_TYPES,
-            confirm_start=False,
-            use_multithread=max_workers > 1,
-            max_workers=max_workers,
-        )
-        run_video_session(
-            selected_course=selection,
-            max_workers=max_workers,
-            fast_mode=fast_mode,
-        )
-
-
 def _run_async_entry() -> None:
     max_concurrent_input = input("请输入并发数 (1-10，默认5): ").strip()
     try:
@@ -126,9 +87,8 @@ def main() -> None:
         print("1. 自动刷讨论题评论")
         print("2. 自动刷测试题")
         print("3. 查看/完成课件")
-        print("4. 多线程刷视频和课件")
-        print("5. 异步刷视频和课件 (推荐)")
-        print("6. 收集测试题（不作答）")
+        print("4. 异步刷视频和课件 (推荐)")
+        print("5. 收集测试题（不作答）")
         print("0. 退出")
         choice = input("请输入功能编号：").strip()
 
@@ -149,10 +109,8 @@ def main() -> None:
                     lambda selection: run_graph_session(selected_course=selection),
                 )
             elif choice == "4":
-                _run_multithread_session()
-            elif choice == "5":
                 _run_async_entry()
-            elif choice == "6":
+            elif choice == "5":
                 run_collect_questions_session()
             elif choice == "0":
                 log_info("已退出程序，再见。")

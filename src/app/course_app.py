@@ -8,6 +8,7 @@ from src.core.course_progress_async import run_async_session
 from src.core.course_progress_graph import SUPPORTED_LEAF_TYPES, run_graph_session
 from src.core.course_progress_multithread import run_video_session
 from src.core.course_selection import CourseSelection, select_courses
+from src.core.exercise_collector import run_collect_questions_session
 from src.core.exercise_solver import run_exercise_solver_session
 from src.network.http_client import SEPARATOR
 from src.utils.logging_utils import log_error, log_info, log_warning
@@ -128,6 +129,7 @@ def main() -> None:
         print("4. 查看/完成课件")
         print("5. 多线程刷视频和课件")
         print("6. 异步刷视频和课件 (推荐)")
+        print("7. 收集测试题（不作答）")
         print("0. 退出")
         choice = input("请输入功能编号：").strip()
 
@@ -135,17 +137,25 @@ def main() -> None:
             if choice == "1":
                 _run_for_selected_courses("课程", lambda selection: run_course_session(selected_course=selection))
             elif choice == "2":
-                _run_for_selected_courses("课程讨论题", lambda selection: run_discussion_comment_session(selected_course=selection))
+                _run_for_selected_courses(
+                    "课程讨论题",
+                    lambda selection: run_discussion_comment_session(selected_course=selection),
+                )
             elif choice == "3":
-                _run_for_selected_courses("课程测试题", lambda selection: run_exercise_solver_session(selected_course=selection))
+                _run_for_selected_courses(
+                    "课程测试题",
+                    lambda selection: run_exercise_solver_session(selected_course=selection),
+                )
             elif choice == "4":
                 _run_for_selected_courses("课程课件", lambda selection: run_graph_session(selected_course=selection))
             elif choice == "5":
                 _run_multithread_session()
             elif choice == "6":
                 _run_async_entry()
+            elif choice == "7":
+                run_collect_questions_session()
             elif choice == "0":
-                log_info("已退出程序，再见！")
+                log_info("已退出程序，再见。")
                 break
             else:
                 log_info("输入有误，请重新选择。")

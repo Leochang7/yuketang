@@ -126,3 +126,8 @@ course_app.py          根入口
 ## 声明
 
 仅供学习和研究，请勿用于违反学校规定、服务条款或法律法规的用途。
+# Update Notes
+
+- Menu `7` collects exercise questions only, grouped by course.
+- Output files are written to the `questions/` directory.
+- This workflow does not call local answers, LLM solving, or answer submission.
